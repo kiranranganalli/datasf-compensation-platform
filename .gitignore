@@ -11,3 +11,4 @@ profiles.yml
 .env
 __pycache__/
 *.pdf
+.github/
