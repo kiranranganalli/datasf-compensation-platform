@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: fct_employee_compensation
+    description: |
+      **Gold layer** — one row per employee per job per fiscal year, enriched with
+      derived total_compensation and tenure_bracket fields. This is the canonical
+      table for any individual-level analysis. For public reporting, use
+      agg_compensation_by_job_family instead.
+
+      **Grain:** (fiscal_year, year_type, employee_name, job_code, department_code, union_code)
+
+      **Known caveat:** ~0.1% of rows share a primary key. Investigation suggests
+      these are employees with multiple appointment periods within a single year,
+      or rare name collisions. Tracked as DATA-101; uniqueness test is set to WARN
+      until resolved with the Controller's Office.
+
+      **Owner:** DataSF Engineering · **SLA:** Refreshed quarterly within 5 business days of source publication.
+    columns:
+      - name: compensation_pk
+        description: Surrogate key over the documented grain.
+        tests:
+          - not_null
+          - unique:
+              config:
+                severity: warn
+                warn_if: ">= 2000"
+                error_if: ">= 5000"
+      - name: fiscal_year
+        description: Fiscal year of the record.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 2013
+              max_value: 2030
+      - name: total_compensation
+        description: Computed as salaries + overtime + other_salaries. Excludes benefits.
+        tests:
+          - not_null
+      - name: tenure_bracket
+        description: Categorical tenure grouping derived from years_of_service.
+        tests:
+          - accepted_values:
+              values: ['0-1 years', '2-4 years', '5-9 years', '10-19 years', '20+ years', 'Unknown']
+      - name: years_of_service
+        description: Distinct count of fiscal years the employee_name appears in the source. Proxy for tenure.
+
+  - name: agg_compensation_by_job_family
+    description: |
+      Public-facing aggregate of total compensation by fiscal year, organization
+      group, and job family. Implements k-anonymity (k=5) by suppressing groups
+      with fewer than 5 distinct employees to mitigate re-identification risk.
+      This is the only marts table the PUBLIC_ACCESS role can query.
+    columns:
+      - name: employee_count
+        description: Distinct employees in this group (always >= 5).
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 5"

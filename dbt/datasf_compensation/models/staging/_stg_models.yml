@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_employee_compensation
+    description: |
+      Cleaned, deduplicated, and type-cast version of the raw San Francisco
+      Employee Compensation dataset. One row per employee per job per fiscal year.
+      All financial columns have commas stripped and are cast to NUMBER(14,2).
+      Source dimensions are trimmed and consistently cased.
+    columns:
+      - name: fiscal_year
+        description: The fiscal year of the compensation record (2013–present).
+        tests:
+          - not_null
+      - name: employee_name
+        description: Plain-text employee name as published by the Controller's Office. Masked downstream for HR_ANALYST role.
+      - name: salaries
+        description: Base salary paid in the fiscal year (USD).
+      - name: overtime
+        description: Overtime pay in the fiscal year (USD).
+      - name: other_salaries
+        description: Other forms of pay (e.g., one-time bonuses, allowances) in USD.

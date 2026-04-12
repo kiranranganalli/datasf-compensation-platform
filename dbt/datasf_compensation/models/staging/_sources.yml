@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: raw
+    database: DATASF
+    schema: RAW
+    description: "Raw landing zone for City of San Francisco employee compensation data, loaded quarterly from the Controller's Office."
+    tables:
+      - name: employee_compensation
+        description: "Raw employee compensation records, one row per employee per job per fiscal year."
+        columns:
+          - name: employee_name
+          - name: year
+          - name: job_code
+          - name: department_code
