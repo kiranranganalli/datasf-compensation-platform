@@ -213,5 +213,3 @@ A fully governed, production-ready data system with strong focus on:
 - Scalability  
 
 ---
-
-Happy to dive deeper into any part.
